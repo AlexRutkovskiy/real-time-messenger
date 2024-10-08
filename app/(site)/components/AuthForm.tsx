@@ -6,20 +6,13 @@ import {
   type SubmitHandler,
   useForm 
 } from "react-hook-form";
-import { BsGithub, BsGoogle } from "react-icons/bs"
 
 import Input from "@/app/components/input/Input";
 import Button from "@/app/components/Button";
-import AuthSocialButton from "./AuthSocialButton";
+import AuthSocial from "./AuthSocial/AuthSocial";
+import { VARIANT_TYPE, SOCIALS } from "@/app/utils/constance";
 
-
-const VARIANT_TYPE = {
-  LOGIN: "LOGIN",
-  REGISTER: "REGISTER"
-} as const
-
-type Variant = "LOGIN" | "REGISTER";
-
+type Variant = typeof VARIANT_TYPE.LOGIN | typeof VARIANT_TYPE.REGISTER;
 
 
 export default function AuthForm() {
@@ -94,41 +87,29 @@ export default function AuthForm() {
           </div>
         </form>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"/>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-6 flex gap-2">
-            <AuthSocialButton 
-              icon={BsGithub}
-              onClick={()=>socialAction("github")} 
-              disabled={isLoading}
-            />
-            <AuthSocialButton 
-              icon={BsGoogle}
-              onClick={()=>socialAction("google")} 
-              disabled={isLoading}
-            />
-          </div>
-        </div>
+        <AuthSocial 
+          items={SOCIALS}
+          onClick={socialAction}
+          disabled={isLoading}
+        />
 
         <div className="mt-6 flex gap-2 justify-center text-sm px-2 text-gray-500">
           <div>
-            {variant === VARIANT_TYPE.LOGIN ? "New to Messenger?" : "Already have an account?"}
+            {
+              variant === VARIANT_TYPE.LOGIN 
+                ? "New to Messenger?" 
+                : "Already have an account?"
+            }
           </div>
           <div
             onClick={toggleVariant}
             className="underline cursor-pointer"
           >
-            {variant === VARIANT_TYPE.LOGIN ? "Create an account" : "Login"}
+            {
+              variant === VARIANT_TYPE.LOGIN 
+                ? "Create an account" 
+                : "Login"
+            }
           </div>
         </div>
       </div>
