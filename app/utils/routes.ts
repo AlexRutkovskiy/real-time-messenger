@@ -3,3 +3,7 @@ export const API_ROUTES = {
     REGISTER: "/api/register"
   }
 }
+
+export const SITE_ROUTES = {
+  USERS: "/users"
+}

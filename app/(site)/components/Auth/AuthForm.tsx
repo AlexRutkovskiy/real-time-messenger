@@ -1,31 +1,32 @@
 'use client';
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { 
   type FieldValues, 
   type SubmitHandler,
   useForm 
 } from "react-hook-form";
-import { signIn, SignInResponse } from "next-auth/react"
+import { signIn, SignInResponse, useSession } from "next-auth/react"
 import axios from "axios";
-
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 import Input from "@/app/components/input/Input";
 import Button from "@/app/components/Button";
 import AuthSocial from "./AuthSocial/AuthSocial";
 import { VARIANT_TYPE, SOCIALS } from "@/app/utils/constance";
-import { API_ROUTES } from "@/app/utils/routes";
+import { API_ROUTES, SITE_ROUTES } from "@/app/utils/routes";
 import { authChainCallback } from "@/app/api/register/action"
 import AuthButton from "./AuthButton";
-import toast from "react-hot-toast";
 
 type Variant = typeof VARIANT_TYPE.LOGIN | typeof VARIANT_TYPE.REGISTER;
 
 
 export default function AuthForm() {
+  const session = useSession();
+  const router = useRouter();
   const [ variant, setVariant ] = useState<Variant>(VARIANT_TYPE.LOGIN);
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
-
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FieldValues>({
     defaultValues: {
       name: "",
@@ -33,6 +34,12 @@ export default function AuthForm() {
       password: ""
     }
   })
+
+  useEffect(() => {
+    if(session?.status === "authenticated") {
+      router.push(SITE_ROUTES.USERS)
+    }
+  }, [router, session?.status])
 
   const toggleVariant = useCallback(() => {
     const tmpV = variant === VARIANT_TYPE.LOGIN 
@@ -47,12 +54,16 @@ export default function AuthForm() {
       (isOk: boolean, msg: string) => {
         const fn = isOk ? toast.success : toast.error;
         fn(msg);
-        reset();
+        
+        if (isOk) {
+          reset();
+          router.push(SITE_ROUTES.USERS)  
+        }
       },
       () => toast.error("Something went wrong!"),
       () => setIsLoading(false)
     );    
-  }, [reset])
+  }, [reset, router])
 
   const onSubmit: SubmitHandler<FieldValues> = useCallback((data) => {
     setIsLoading(true)
@@ -61,6 +72,7 @@ export default function AuthForm() {
       (variant === VARIANT_TYPE.LOGIN)
       ? () => signIn("credentials", {...data, redirect: false})
       : () => axios.post(API_ROUTES.AUTH.REGISTER, data)
+        .then(() => signIn("credentials", {...data, redirect: false}))
 
     request(callback);
   }, [request, variant])
