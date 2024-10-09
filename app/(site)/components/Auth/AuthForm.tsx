@@ -6,11 +6,18 @@ import {
   type SubmitHandler,
   useForm 
 } from "react-hook-form";
+import { signIn, SignInResponse } from "next-auth/react"
+import axios from "axios";
+
 
 import Input from "@/app/components/input/Input";
 import Button from "@/app/components/Button";
 import AuthSocial from "./AuthSocial/AuthSocial";
 import { VARIANT_TYPE, SOCIALS } from "@/app/utils/constance";
+import { API_ROUTES } from "@/app/utils/routes";
+import { authChainCallback } from "@/app/api/register/action"
+import AuthButton from "./AuthButton";
+import toast from "react-hot-toast";
 
 type Variant = typeof VARIANT_TYPE.LOGIN | typeof VARIANT_TYPE.REGISTER;
 
@@ -19,14 +26,7 @@ export default function AuthForm() {
   const [ variant, setVariant ] = useState<Variant>(VARIANT_TYPE.LOGIN);
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
-  const toggleVariant = useCallback(() => {
-    const tmpV = variant === VARIANT_TYPE.LOGIN 
-      ? VARIANT_TYPE.REGISTER 
-      : VARIANT_TYPE.LOGIN;
-    setVariant(tmpV)
-  }, [variant])
-
-  const { register, handleSubmit, formState: { errors } } = useForm<FieldValues>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FieldValues>({
     defaultValues: {
       name: "",
       email: "",
@@ -34,22 +34,41 @@ export default function AuthForm() {
     }
   })
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  const toggleVariant = useCallback(() => {
+    const tmpV = variant === VARIANT_TYPE.LOGIN 
+      ? VARIANT_TYPE.REGISTER 
+      : VARIANT_TYPE.LOGIN;
+    setVariant(tmpV)
+  }, [variant])
+
+  const request = useCallback((callback:() => Promise<SignInResponse | undefined>) => {
+    authChainCallback(
+      callback,
+      (isOk: boolean, msg: string) => {
+        const fn = isOk ? toast.success : toast.error;
+        fn(msg);
+        reset();
+      },
+      () => toast.error("Something went wrong!"),
+      () => setIsLoading(false)
+    );    
+  }, [reset])
+
+  const onSubmit: SubmitHandler<FieldValues> = useCallback((data) => {
     setIsLoading(true)
 
-    console.log(data)
-    if (variant === VARIANT_TYPE.LOGIN) {
-      // AXIOS LOGIN
-    } else {
-      // AXIOS REGISTER
-    }
-  }
+    const callback: () => Promise<SignInResponse | undefined> = 
+      (variant === VARIANT_TYPE.LOGIN)
+      ? () => signIn("credentials", {...data, redirect: false})
+      : () => axios.post(API_ROUTES.AUTH.REGISTER, data)
 
-  const socialAction = (action: string) => {
+    request(callback);
+  }, [request, variant])
+
+  const socialAction = useCallback((action: string) => {
     setIsLoading(true)
-    console.log(action)
-    // NextAuth Social Sign In
-  }
+    request(() => signIn(action, { redirect: false }))
+  }, [request])
 
   return (
     <div className="mt-8 mx-auto w-full sm:max-w-md">
@@ -93,25 +112,10 @@ export default function AuthForm() {
           disabled={isLoading}
         />
 
-        <div className="mt-6 flex gap-2 justify-center text-sm px-2 text-gray-500">
-          <div>
-            {
-              variant === VARIANT_TYPE.LOGIN 
-                ? "New to Messenger?" 
-                : "Already have an account?"
-            }
-          </div>
-          <div
-            onClick={toggleVariant}
-            className="underline cursor-pointer"
-          >
-            {
-              variant === VARIANT_TYPE.LOGIN 
-                ? "Create an account" 
-                : "Login"
-            }
-          </div>
-        </div>
+        <AuthButton 
+          variant={variant}
+          toggleVariant={toggleVariant}
+        />
       </div>
     </div>
   )
