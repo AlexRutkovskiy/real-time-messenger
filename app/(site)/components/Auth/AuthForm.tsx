@@ -82,8 +82,16 @@ export default function AuthForm() {
     request(() => signIn(action, { redirect: false }))
   }, [request])
 
+  if (session?.status === "loading" || session?.status === "authenticated") {
+    return;
+  }
+
+
   return (
     <div className="mt-8 mx-auto w-full sm:max-w-md">
+      <h2 className="mb-3 text-center text-3xl font-bold tracking-tight text-gray-900">
+        Sign in to your account
+      </h2>
       <div className="px-4 py-8 shadow sm:rounded-lg sm:px-10 bg-white">
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {variant === VARIANT_TYPE.REGISTER && (
