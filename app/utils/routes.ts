@@ -3,6 +3,7 @@ export const API_ROUTES = {
     REGISTER: "/api/register"
   },
   CONVERSATIONS: "/api/conversations",
+  CONVERSATIONS_ID: "/api/conversations/:id",
   MESSAGES: "/api/messages",
   SEEN: "/api/conversations/:id/seen"
 }
