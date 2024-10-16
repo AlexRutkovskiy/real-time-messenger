@@ -5,7 +5,8 @@ export const API_ROUTES = {
   CONVERSATIONS: "/api/conversations",
   CONVERSATIONS_ID: "/api/conversations/:id",
   MESSAGES: "/api/messages",
-  SEEN: "/api/conversations/:id/seen"
+  SEEN: "/api/conversations/:id/seen",
+  SETTINGS: "/api/settings"
 }
 
 export const SITE_ROUTES = {
