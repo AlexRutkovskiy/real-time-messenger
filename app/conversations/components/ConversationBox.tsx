@@ -6,7 +6,6 @@ import { format } from "date-fns"
 import clsx from "clsx"
 import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/app/types"
-import { Conversation, Message, User } from "@prisma/client"
 import useOtherUser from "@/app/hooks/useOtherUser"
 import { SITE_ROUTES } from "@/app/utils/routes"
 import Avatar from "@/app/components/Avatar"
@@ -70,13 +69,13 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
       <div className="min-w-0 flex-1">
         <div className="focus:outline-none">
           <div
-            className="flex justify-between items-center mb-1"
+            className="flex justify-between items-start mb-1"
           >
             <p className="text-md font-medium text-gray-900">
               {data?.name || otherUser?.name}
             </p>
             {lastMessage?.createdAt && (
-              <p className="text-xs text-gray-400 font-light">
+              <p className="text-xs text-gray-400 font-light whitespace-nowrap">
                 {format(new Date(lastMessage?.createdAt), 'p')}
               </p>
             )}
