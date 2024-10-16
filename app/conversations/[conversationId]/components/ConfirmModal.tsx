@@ -8,7 +8,7 @@ import { FiAlertTriangle } from "react-icons/fi"
 import { DialogTitle } from "@headlessui/react";
 
 import { useConversation } from "@/app/hooks/useConversation";
-import { API_ROUTES } from "@/app/utils/routes";
+import { API_ROUTES, SITE_ROUTES } from "@/app/utils/routes";
 import Modal from "@/app/components/Modal";
 import Button from "@/app/components/Button";
 
@@ -33,7 +33,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     axios.delete(url)
       .then(() => {
         onClose();
-        router.push(API_ROUTES.CONVERSATIONS)
+        router.push(SITE_ROUTES.CONVERSATION)
         router.refresh()
       })
       .catch(() => toast.error('Something went wrong!'))
