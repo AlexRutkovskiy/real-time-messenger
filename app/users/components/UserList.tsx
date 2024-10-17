@@ -10,9 +10,6 @@ interface UserListProps {
 const UserList: React.FC<UserListProps> = ({
   items
 }: UserListProps) => {
-
-  console.log(items)
-
   return (
     <aside
       className="fixed inset-y-0 pb-20 lg:pb-0 lg:left-20 lg:w-80 lg:block

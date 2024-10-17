@@ -65,7 +65,12 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
         selected ? "bg-neutral-100" : "bg-white"
       )}
     >
-      <Avatar user={otherUser} />
+      
+      <Avatar 
+        user={otherUser} 
+        isGroup={data?.isGroup as boolean}
+      />
+
       <div className="min-w-0 flex-1">
         <div className="focus:outline-none">
           <div

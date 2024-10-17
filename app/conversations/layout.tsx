@@ -1,4 +1,5 @@
 import getConversations from "../actions/getConversations"
+import getUsers from "../actions/getUsers"
 import SideBar from "../components/sidebar/Sidebar"
 import ConversationsList from "./components/ConversationsList"
 
@@ -11,11 +12,15 @@ export default async function ConversationsLayout({
 }: ConversationsLayoutProps) {
   
   const conversations = await getConversations()
+  const users = await getUsers();
 
   return (
     <SideBar>
       <div className="h-full">
-        <ConversationsList initialItems={conversations} />
+        <ConversationsList 
+          initialItems={conversations} 
+          users={users}
+        />
         {children}
       </div>
     </SideBar>

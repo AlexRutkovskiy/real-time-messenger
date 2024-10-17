@@ -2,15 +2,26 @@
 
 import Image from "next/image";
 import { User } from "@prisma/client"
+import { useMemo } from "react";
 
 interface AvatarProps {
-  user?: User
+  user?: User;
+  isGroup?:boolean;
 }
 
 const Avatar: React.FC<AvatarProps> = ({
-  user
+  user,
+  isGroup
 }: AvatarProps) => {
   
+  const imageSrc = useMemo(() => {
+    if (isGroup) {
+      return "/images/users-group.png"
+    }
+
+    return user?.image || '/images/placeholder.jpg'
+  }, [isGroup, user?.image])
+
   return (
     <div className="relative flex">
       <div
@@ -19,8 +30,9 @@ const Avatar: React.FC<AvatarProps> = ({
       >
         <Image
           alt="Avatar"
-          src={user?.image || '/images/placeholder.jpg'}
+          src={imageSrc}
           fill
+          className="object-cover"
         />
       </div>
       <span
