@@ -2,6 +2,8 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { NextResponse } from "next/server";
 
 import prisma from "@/app/libs/prismadb";
+import { pusherServer } from "@/app/libs/pusher";
+import { PUSHER_EVENTS } from "@/app/utils/constance";
 
 interface IParams {
   conversationId?: string;
@@ -62,9 +64,17 @@ export async function POST(
       }
     });
 
+    await pusherServer.trigger(currentUser.email, PUSHER_EVENTS.CONVERSATION_UPDATE, {
+      id: conversationId,
+      messages: [updatedMessage]
+    });
+
+
     if (lastMessage.seenIds.indexOf(currentUser.id) !== -1) {
       return NextResponse.json(conversation);
     }
+
+    await pusherServer.trigger(conversationId!, PUSHER_EVENTS.MESSAGE_UPDATE, updatedMessage);
 
     return NextResponse.json(updatedMessage);
   } catch (error) {
