@@ -1,15 +1,21 @@
 'use client'
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { MdOutlineGroupAdd } from "react-icons/md";
+import { useSession } from "next-auth/react";
+import { find } from "lodash";
+import { User } from "@prisma/client";
 
 import { useConversation } from "@/app/hooks/useConversation";
 import { FullConversationType } from "@/app/types";
 import ConversationBox from "./ConversationBox";
 import GroupChatModal from "./GroupChatModal";
-import { User } from "@prisma/client";
+import { pusherClient } from "@/app/libs/pusher";
+import { PUSHER_EVENTS } from "@/app/utils/constance";
+import { SITE_ROUTES } from "@/app/utils/routes";
+
 
 interface ConversationsListProps {
   initialItems: FullConversationType[];
@@ -21,10 +27,65 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   users
 }: ConversationsListProps) => {
   
+  const session = useSession();
   const router = useRouter();
   const [items, setItems] = useState<FullConversationType[]>(initialItems)
   const { conversationId, isOpen } = useConversation()
   const [ isModalOpen, setIsModalOpen ] = useState<boolean>(false)
+
+  const pusherKey = useMemo(() => {
+    return session.data?.user?.email;
+  }, [session])
+
+  useEffect(() => {
+    if (!pusherKey) return;
+
+    const handleNewConversation = (conversation: FullConversationType) => {
+      setItems((current) => {
+        if (find(current, {id: conversation.id})) {
+          return current;
+        }
+        return [conversation, ...current];
+      })
+    }
+
+    const handleUpdateConversation = (conversation: FullConversationType) => {
+      setItems((current) => {
+        return [...current.map(c => {
+          if (c.id === conversation.id) {
+            return {
+              ...c,
+              messages: conversation.messages
+            }
+          }
+
+          return c;
+        })]
+      })
+    }
+
+    const handleRemoveConversation = (conversation: FullConversationType) => {
+      setItems((current) => {
+        return [...current.filter(item => item.id !== conversation.id)]
+      });
+
+      if (conversationId === conversation.id) {
+        router.push(SITE_ROUTES.CONVERSATION)
+      }
+    }
+
+    pusherClient.subscribe(pusherKey);
+    pusherClient.bind(PUSHER_EVENTS.CONVERSATION_NEW, handleNewConversation);
+    pusherClient.bind(PUSHER_EVENTS.CONVERSATION_UPDATE, handleUpdateConversation);
+    pusherClient.bind(PUSHER_EVENTS.CONVERSATION_REMOVE, handleRemoveConversation);
+
+    return () => {
+      pusherClient.unsubscribe(pusherKey);
+      pusherClient.unbind(PUSHER_EVENTS.CONVERSATION_NEW, handleNewConversation);
+      pusherClient.unbind(PUSHER_EVENTS.CONVERSATION_UPDATE, handleUpdateConversation);
+      pusherClient.unbind(PUSHER_EVENTS.CONVERSATION_REMOVE, handleRemoveConversation);
+    }
+  }, [conversationId, pusherKey, router])
 
   return (
     <>
